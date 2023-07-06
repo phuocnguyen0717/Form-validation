@@ -1,10 +1,19 @@
 // Đối tượng `Validator`
 function Validator(options) {
+  function getParent(element, selector) {
+    while (element.parentElement) {
+      if (element.parentElement.matches(selector)) {
+        return element.parentElement;
+      }
+      element = element.parentElement;
+    }
+  }
+
   let selectorRules = {};
   // Hàm thực hiện Validate
   function Validate(inputElement, rule) {
-    let errorElement = inputElement.parentElement.querySelector(options.errorSelector);
-    let errorMesssage;
+    let errorElement = getParent(inputElement, options.formGroupSelector).querySelector(options.errorSelector);
+    let errorMessage;
 
     // lấy ra các rules của selector
     let rules = selectorRules[rule.selector];
@@ -12,18 +21,25 @@ function Validator(options) {
     // lặp qua từng rule && kiểm tra
     // Nếu có lỗi thì dừng việc kiểm tra
     for (let i = 0; i < rules.length; ++i) {
-      errorMesssage = rules[i](inputElement.value);
-      if (errorMesssage) break;
+      switch (inputElement.type) {
+        case "radio":
+        case "checkbox":
+          errorMessage = rules[i](formElement.querySelector(rule.selector + ":checked"));
+          break;
+        default:
+          errorMessage = rules[i](inputElement.value);
+      }
+      if (errorMessage) break;
     }
 
-    if (errorMesssage) {
-      errorElement.innerText = errorMesssage;
-      inputElement.parentElement.classList.add("invalid");
+    if (errorMessage) {
+      errorElement.innerText = errorMessage;
+      getParent(inputElement, options.formGroupSelector).classList.add("invalid");
     } else {
       errorElement.innerText = "";
-      inputElement.parentElement.classList.remove("invalid");
+      getParent(inputElement, options.formGroupSelector).classList.remove("invalid");
     }
-    return !errorMesssage;
+    return !errorMessage;
   }
 
   // Lấy element của form cần validate
@@ -38,6 +54,7 @@ function Validator(options) {
       // Lặp qua từng rules và validate
       options.rules.forEach((rule) => {
         let inputElement = formElement.querySelector(rule.selector);
+
         let isValid = Validate(inputElement, rule);
         if (!isValid) {
           isFormValid = false;
@@ -47,10 +64,30 @@ function Validator(options) {
       if (isFormValid) {
         // trường hợp submit với js
         if (typeof options.onSubmit === "function") {
-          let enableInputs = formElement.querySelectorAll("[name]:not([disable])");
+          let enableInputs = formElement.querySelectorAll("[name]");
 
           let formValues = Array.from(enableInputs).reduce((values, input) => {
-            return (values[input.name] = input.value) && values;
+            switch (input.type) {
+              case "radio":
+                values[input.name] = formElement.querySelector('input[name="' + input.name + '"]:checked').value;
+                break;
+              case "checkbox":
+                if (!input.matches(":checked")) {
+                  values[input.name] = "";
+                  return values;
+                }
+                if (!Array.isArray(values[input.name])) {
+                  values[input.name] = [];
+                }
+                values[input.name].push(input.value);
+                break;
+              case "file":
+                values[input.name] = input.files;
+                break;
+              default:
+                values[input.name] = input.value;
+            }
+            return values;
           }, {});
 
           options.onSubmit(formValues);
@@ -71,21 +108,20 @@ function Validator(options) {
         selectorRules[rule.selector] = [rule.test];
       }
 
-      let inputElement = formElement.querySelector(rule.selector);
+      let inputElements = formElement.querySelectorAll(rule.selector);
 
-      if (inputElement) {
-        // Xử lý trường hợp blur khỏi input
+      Array.from(inputElements).forEach((inputElement) => {
         inputElement.onblur = () => {
           Validate(inputElement, rule);
         };
 
-        // Xử lý mỗi khi người dùn nhập vào input
+        // Xử lý mỗi khi người dùng nhập vào input
         inputElement.oninput = () => {
-          let errorElement = inputElement.parentElement.querySelector(options.errorSelector);
+          let errorElement = getParent(inputElement, options.formGroupSelector).querySelector(options.errorSelector);
           errorElement.innerText = "";
-          inputElement.parentElement.classList.remove("invalid");
+          getParent(inputElement, options.formGroupSelector).classList.remove("invalid");
         };
-      }
+      });
     });
   }
 }
@@ -98,7 +134,7 @@ Validator.isRequired = (selector, mess) => {
   return {
     selector: selector,
     test: (value) => {
-      return value.trim() ? undefined : mess || "vui lòng nhập trường này";
+      return value ? undefined : mess || "vui lòng nhập trường này";
     },
   };
 };

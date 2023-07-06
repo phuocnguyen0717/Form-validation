@@ -60,3 +60,7 @@ II.
 - bắt lỗi từng trường hợp(nhập sai cấu trúc email, tối thiểu kí tự mật khẩu, khoảng cách trắng)
 - bắt nhiều lỗi trong 1 trường(vd: input bỏ trống ->báo lỗi , khi input có kí tự mà hk đúng yêu cầu email -> báo lỗi)
 - xử lý submit
+- lấy tất cả thuộc tính trong element
+- biến đổi từ nodeList -> ArrayList
+- Callback
+- lựa chọn radio/checkbox

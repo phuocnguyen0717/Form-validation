@@ -28,6 +28,11 @@
         <span class="form-message"></span>
       </div>
       <div class="form-group">
+        <label for="avatar" class="form-label">Ảnh đại diện </label>
+        <input id="avatar" type="file" name="avatar" class="form-control" />
+        <span class="form-message"></span>
+      </div>
+      <div class="form-group">
         <label for="password" class="form-label">Nhập lại mật khẩu</label>
         <input
           id="password_confirmation"
@@ -38,17 +43,47 @@
         />
         <span class="form-message"></span>
       </div>
+      <div class="form-group">
+        <label for="province" class="form-label">Tỉnh/TP</label>
+        <select id="province" name="province" class="form-control">
+          <option value="">-- Chọn Tỉnh/TP --</option>
+          <option value="Hni">Hà Nội</option>
+          <option value="hpg">Hải Phòng</option>
+        </select>
+        <span class="form-message"></span>
+      </div>
+      <div class="form-group">
+        <label for="password" class="form-label">Giới tính</label>
+        <div>
+          <input type="checkbox" name="gender" value="male" class="form-control" />
+          Nam
+        </div>
+        <div>
+          <input type="checkbox" name="gender" value="female" class="form-control" />
+          Nữ
+        </div>
+        <div>
+          <input type="checkbox" name="gender" value="others" class="form-control" />
+          Khác
+        </div>
+        <span class="form-message"></span>
+      </div>
       <button class="form-submit">Đăng ký</button>
     </form>
     <script src="./validator.js"></script>
     <script>
       Validator({
         form: "#form-1",
+        formGroupSelector: ".form-group",
         errorSelector: ".form-message",
         rules: [
           Validator.isRequired("#fullname"),
           Validator.isEmail("#email"),
+          Validator.isRequired("#avatar"),
           Validator.minLength("#password", 6),
+          Validator.isRequired("#password_confirmation"),
+          Validator.isRequired('input[name="gender"]'),
+          Validator.isRequired("#province"),
           Validator.isConfirmed(
             "#password_confirmation",
             () => {
